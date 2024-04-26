@@ -1,4 +1,4 @@
-# Open Principal Odor Map
+# Open Principal Odor Map - With Perfumershub intensity mappings
 Replication of the Principal Odor Map paper by Brian K. Lee et al. (2023) \[1\].
 The model is implemented such that it integrates with [DeepChem](https://github.com/deepchem/deepchem ).
 
