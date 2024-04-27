@@ -7,8 +7,8 @@ I'm also using this project as a way to improve and sharpen my skills in applied
 
 ## Main goals:
 Creating a systematic way to create an ‘engine’ capable of digitally conceptualizing odours (with the eventual goal of synthesis)
- -- Find a reliable minimum value for ‘n’ such that ‘n’ separate odour dimensions can represent the entire odour space.
- -- Find a chemical compound/mixture for each of these n dimensions.
+ - Find a reliable minimum value for ‘n’ such that ‘n’ separate odour dimensions can represent the entire odour space.
+ - Find a chemical compound/mixture for each of these n dimensions.
 
 ## QSOR relationship between compounds and odours:
 We rely on the POM GNN model that seems to have shown promising abilities in mapping a QSOR between chemical structure of compound to some corresponding perception labels.
