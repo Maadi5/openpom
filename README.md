@@ -2,6 +2,8 @@
 
 Please find the original readme from the main openpom repo.
 
+All my work is present in openpom_playground.ipynb. Please bear with me, as it's not too organized at the moment. But you can find a high-level view of what's been done below.
+
 The purpose of this Readme is to track my progress with different experiments to understand the inner-workings of the POM model hopefully towards narrowing down on my Main Goals. 
 I'm also using this project as a way to improve and sharpen my skills in applied Statistics, so any feedback would be greatly appreciated!
 
