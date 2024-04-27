@@ -14,10 +14,15 @@ Creating a systematic way to create an ‘engine’ capable of digitally concept
 We rely on the POM GNN model that seems to have shown promising abilities in mapping a QSOR between chemical structure of compound to some corresponding perception labels.
 Also, the dataset used to train this model appears to cover a large spectrum of odour labels in the human scent experience. Hence, we are assuming that this model has created a comprehensive understanding of odours. I’m working on work done from the openpom port/replication of the POM paper.
    ### Testing out the setup and visualizing model learnings
-   1. Visualizations of embedding space of different predetermined ‘primary odour’ categories to verify the learnings of the openpom port of the POM research paper. Here’s the Crocker Henderson categorization: <img width="586" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/d46bda2b-ddf2-4e17-866f-b5a49981f619">
-   2. Visualizing the heatmaps of the intensity of certain odours from the Intensity dataset mapped against the 2-dim PCA coordinates of the POM model embedding: <img width="824" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/3a07bab5-1b8a-4ff6-90ef-4c2b6145ccdb">
-   3. Attempts to model this regression dataset (from the data above) using different techniques ranging from gradient boosting to neural networks: <img width="400" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/6316e11c-7813-45f3-b5d3-acdc29087cf3">
-   4. To do: Look at Activation maps instead of embeddings. Try to look at patterns (like number of neurons activated, for different intensities of certain odours.) This is a work in progress..
+   - Visualizations of embedding space of different predetermined ‘primary odour’ categories to verify the learnings of the openpom port of the POM research paper. Here’s the Crocker Henderson categorization: <img width="586" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/d46bda2b-ddf2-4e17-866f-b5a49981f619">
+   ### Odour Intensity
+   - In order to derive a ‘hex’ of ‘n’ minimum odours, odour ‘intensity’ data seems to be a valuable missing component. The idea is that, only with intensities can you hope to represent any odour as a function of varying intensities of these ‘n’ base odours. 
+For this,I have explored a small ‘odour intensity’ dataset that captures the intensity of different odours from 24 separate classes against the name of the compound. Here’s a heatmap of the intensity of Phenolic odour from the Intensity dataset mapped against the 2-dim PCA coordinates of the POM model embedding: <img width="824" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/3a07bab5-1b8a-4ff6-90ef-4c2b6145ccdb">
+   - Attempts to model this regression dataset (from the data above) using different techniques ranging from gradient boosting to neural networks: <img width="400" alt="image" src="https://github.com/Maadi5/openpom/assets/55384421/6316e11c-7813-45f3-b5d3-acdc29087cf3">
+
+## Some next steps (Activation maps):
+It appears as though I have missed a critial step - Which is to analyze the Activation maps, rather than just the embedding activations from the forward pass. My next goal is to try to look at patterns (like number of neurons activated, for different intensities of certain odours.) from the uncompressed embedding layer through activations checked label-wise. This is a work in progress..
+
 
 
       
