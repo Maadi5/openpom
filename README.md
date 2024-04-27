@@ -25,7 +25,7 @@ Also, the dataset used to train this model appears to cover a large spectrum of 
 
 
 
-## Contributors:
+## Contributors of the original openpom repo:
 **Aryan Amit Barsainyan**, National Institute of Technology Karnataka, India: code, data cleaning, model development<br/>
 **Ritesh Kumar**, CSIR-CSIO, Chandigarh, India: data cleaning, hyperparameter optimisation<br/>
 **Pinaki Saha**, University of Hertfordshire, UK: discussions and feedback<br/>
