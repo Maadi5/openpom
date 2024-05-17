@@ -333,6 +333,19 @@ class MPNNPOM(nn.Module):
             return proba, logits, embeddings
         else:
             return out
+        
+    def get_penultimate_activations(self, g: DGLGraph) -> torch.Tensor:
+        node_feats: torch.Tensor = g.ndata[self.nfeat_name]
+        edge_feats: torch.Tensor = g.edata[self.efeat_name]
+
+        node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
+        molecular_encodings: torch.Tensor = self._readout(g, node_encodings, edge_feats)
+
+        if self.readout_type == 'global_sum_pooling':
+            molecular_encodings = F.softmax(molecular_encodings, dim=1)
+
+        embeddings, _ = self.ffn(molecular_encodings)
+        return embeddings
 
 
 class MPNNPOMModel(TorchModel):
