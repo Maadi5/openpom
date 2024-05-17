@@ -612,3 +612,9 @@ class MPNNPOMModel(TorchModel):
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(
             ([], labels, weights))
         return g, labels, weights
+
+    def forward(self, g: DGLGraph) -> torch.Tensor:
+        """
+        Forward pass for MPNNPOMModel.
+        """
+        return self.model(g)
