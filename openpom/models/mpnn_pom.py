@@ -209,6 +209,24 @@ class MPNNPOM(nn.Module):
             activation=ffn_activation,
             dropout_p=ffn_dropout_p,
             dropout_at_input_no_act=ffn_dropout_at_input_no_act)
+    
+        self.n_layers: int = len(d_hidden_list) + 1
+        
+                # Set linear layers
+        if self.n_layers == 1:
+            linears: List = [nn.Linear(ffn_input, self.ffn_output)]
+
+        else:
+            linears = [nn.Linear(ffn_input, d_hidden_list[0])]
+            for idx in range(1, len(d_hidden_list)):
+                linears.append(
+                    nn.Linear(d_hidden_list[idx - 1], d_hidden_list[idx]))
+            linears.append(nn.Linear(d_hidden_list[-1], self.ffn_output))
+
+        self.linears: nn.ModuleList = nn.ModuleList(linears)
+        dropout_layer: nn.Dropout = nn.Dropout(ffn_dropout_p)
+        self.dropout_p: nn.ModuleList = nn.ModuleList(
+            [dropout_layer for _ in range(self.n_layers)])
 
     def _readout(self, g: DGLGraph, node_encodings: torch.Tensor,
                  edge_feats: torch.Tensor) -> torch.Tensor:
@@ -319,7 +337,10 @@ class MPNNPOM(nn.Module):
 
         embeddings: torch.Tensor
         out: torch.Tensor
-        embeddings, out = self.ffn(molecular_encodings)
+        embeddings = self.ffn(molecular_encodings)
+        x = self.dropout_p[self.n_layers - 2](
+            self.activation(embeddings))
+        out = self.linears[-1](x)
 
         if self.mode == 'classification':
             if self.n_tasks == 1:

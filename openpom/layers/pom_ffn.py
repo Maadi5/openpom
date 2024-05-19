@@ -102,7 +102,7 @@ class CustomPositionwiseFeedForward(nn.Module):
             ]
             self.batchnorms: nn.ModuleList = nn.ModuleList(batchnorms)
 
-    def forward(self, x: torch.Tensor) -> List[Optional[torch.Tensor]]:
+    def forward(self, x: torch.Tensor): # -> List[Optional[torch.Tensor]]:
         """
         Output Computation for the Customised
         PositionwiseFeedForward layer
@@ -147,5 +147,4 @@ class CustomPositionwiseFeedForward(nn.Module):
                 x = self.dropout_p[self.n_layers - 2](
                     self.activation(embeddings))
 
-            output: torch.Tensor = self.linears[-1](x)
-            return [embeddings, output]
+            return embeddings
