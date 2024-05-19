@@ -296,6 +296,22 @@ class MPNNPOM(nn.Module):
 
         # batch_size x (node_out_feats + edge_out_feats)
         return batch_mol_hidden_states
+    
+    def get_embeddings(self, g):
+        node_feats: torch.Tensor = g.ndata[self.nfeat_name]
+        edge_feats: torch.Tensor = g.edata[self.efeat_name]
+
+        node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
+
+        molecular_encodings: torch.Tensor = self._readout(
+            g, node_encodings, edge_feats)
+        if self.readout_type == 'global_sum_pooling':
+            molecular_encodings = F.softmax(molecular_encodings, dim=1)
+
+        embeddings: torch.Tensor
+        embeddings = self.ffn(molecular_encodings)
+        return embeddings
+    
 
     def forward(
         self, g: DGLGraph
@@ -325,19 +341,7 @@ class MPNNPOM(nn.Module):
             its shape will be ``(dgl_graph.batch_size, self.n_classes)``
             if self.n_tasks is 1.
         """
-        node_feats: torch.Tensor = g.ndata[self.nfeat_name]
-        edge_feats: torch.Tensor = g.edata[self.efeat_name]
-
-        node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
-
-        molecular_encodings: torch.Tensor = self._readout(
-            g, node_encodings, edge_feats)
-        if self.readout_type == 'global_sum_pooling':
-            molecular_encodings = F.softmax(molecular_encodings, dim=1)
-
-        embeddings: torch.Tensor
-        out: torch.Tensor
-        embeddings = self.ffn(molecular_encodings)
+        embeddings = self.get_embeddings(g)
         x = self.dropout_p[self.n_layers - 2](
             self.activation(embeddings))
         out = self.linears[-1](x)
