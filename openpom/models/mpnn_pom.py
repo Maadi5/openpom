@@ -209,6 +209,27 @@ class MPNNPOM(nn.Module):
             activation=ffn_activation,
             dropout_p=ffn_dropout_p,
             dropout_at_input_no_act=ffn_dropout_at_input_no_act)
+
+        if ffn_activation == 'relu':
+            self.activation = nn.ReLU()
+
+        elif ffn_activation == 'leakyrelu':
+            self.activation = nn.LeakyReLU(0.1)
+
+        elif ffn_activation == 'prelu':
+            self.activation = nn.PReLU()
+
+        elif ffn_activation == 'tanh':
+            self.activation = nn.Tanh()
+
+        elif ffn_activation == 'selu':
+            self.activation = nn.SELU()
+
+        elif ffn_activation == 'elu':
+            self.activation = nn.ELU()
+
+        elif ffn_activation == 'linear':
+            self.activation = lambda x: x
     
         self.n_layers: int = len(d_hidden_list) + 1
         
