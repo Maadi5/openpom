@@ -8,7 +8,7 @@ from deepchem.models.torch_models.torch_model import TorchModel
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
 from openpom.layers.pom_ffn2 import CustomPositionwiseFeedForward
-from openpom.utils.loss import CustomMultiLabelLoss
+from openpom.utils.loss2 import CustomMultiLabelLoss
 from openpom.utils.optimizer import get_optimizer
 
 try:
@@ -333,6 +333,14 @@ class MPNNPOM(nn.Module):
         embeddings = self.ffn(molecular_encodings)
         return embeddings
 
+    def get_logits_from_output(self, output):
+        if self.n_tasks == 1:
+            logits: torch.Tensor = output.view(-1, self.n_classes)
+        else:
+            logits = output.view(-1, self.n_tasks, self.n_classes)
+
+        return logits
+
     def forward(
             self, g: DGLGraph
     ) -> Union[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
@@ -367,10 +375,7 @@ class MPNNPOM(nn.Module):
         out = self.linears[-1](x)
 
         if self.mode == 'classification':
-            if self.n_tasks == 1:
-                logits: torch.Tensor = out.view(-1, self.n_classes)
-            else:
-                logits = out.view(-1, self.n_tasks, self.n_classes)
+            logits = self.get_logits_from_output(output=out)
             proba: torch.Tensor = F.sigmoid(
                 logits)  # (batch, n_tasks, classes)
             if self.n_classes == 1:
@@ -389,7 +394,7 @@ class MPNNPOM(nn.Module):
         if self.readout_type == 'global_sum_pooling':
             molecular_encodings = F.softmax(molecular_encodings, dim=1)
 
-        embeddings, _ = self.ffn(molecular_encodings)
+        embeddings = self.ffn(molecular_encodings)
         return embeddings
 
 
