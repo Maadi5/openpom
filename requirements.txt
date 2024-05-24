@@ -5,7 +5,7 @@ rdkit
 torch
 torchvision
 torchaudio
-deepchem==2.7.1
+deepchem
 pytest
 ipykernel
 scikit-multilearn
