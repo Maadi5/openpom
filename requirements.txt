@@ -2,10 +2,10 @@ pyrfume
 pandas
 numpy
 rdkit
-deepchem
 torch
 torchvision
 torchaudio
+deepchem==2.7.1
 pytest
 ipykernel
 scikit-multilearn
