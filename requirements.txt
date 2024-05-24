@@ -2,10 +2,11 @@ pyrfume
 pandas
 numpy
 rdkit
+deepchem
 torch
 torchvision
 torchaudio
-deepchem
+dgllife
 pytest
 ipykernel
 scikit-multilearn
