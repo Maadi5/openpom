@@ -332,7 +332,7 @@ class MPNNPOM(nn.Module):
                 logits)  # (batch, n_tasks, classes)
             if self.n_classes == 1:
                 proba = proba.squeeze(-1)  # (batch, n_tasks)
-                pdb.set_trace()
+                # pdb.set_trace()
             return proba, logits, embeddings
         else:
             return out
