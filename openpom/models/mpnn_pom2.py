@@ -592,7 +592,7 @@ class MPNNPOMModel(TorchModel):
                 class_imbalance_ratio=class_imbalance_ratio,
                 loss_aggr_type=loss_aggr_type,
                 device=device_name)
-            output_types = ['prediction'] #, 'loss', 'embedding']
+            output_types = ['loss'] #, 'loss', 'embedding']
 
         optimizer: Optimizer = get_optimizer(optimizer_name)
         optimizer.learning_rate = learning_rate
