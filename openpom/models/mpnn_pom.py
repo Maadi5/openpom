@@ -13,13 +13,13 @@ from openpom.layers.pom_ffn import CustomPositionwiseFeedForward
 from openpom.utils.loss import CustomMultiLabelLoss
 from openpom.utils.optimizer import get_optimizer
 
-try:
-    import dgl
-    from dgl import DGLGraph
-    from dgl.nn.pytorch import Set2Set
-    from openpom.layers.pom_mpnn_gnn import CustomMPNNGNN
-except (ImportError, ModuleNotFoundError):
-    raise ImportError('This module requires dgl and dgllife')
+# try:
+import dgl
+from dgl import DGLGraph
+from dgl.nn.pytorch import Set2Set
+from openpom.layers.pom_mpnn_gnn import CustomMPNNGNN
+# except (ImportError, ModuleNotFoundError):
+#     raise ImportError('This module requires dgl and dgllife')
 
 
 class MPNNPOM(nn.Module):
@@ -332,7 +332,7 @@ class MPNNPOM(nn.Module):
                 logits)  # (batch, n_tasks, classes)
             if self.n_classes == 1:
                 proba = proba.squeeze(-1)  # (batch, n_tasks)
-                # pdb.set_trace()
+            pdb.set_trace()
             return proba, logits, embeddings
         else:
             return out
