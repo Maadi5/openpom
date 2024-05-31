@@ -1,3 +1,5 @@
+import pdb
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -330,6 +332,7 @@ class MPNNPOM(nn.Module):
                 logits)  # (batch, n_tasks, classes)
             if self.n_classes == 1:
                 proba = proba.squeeze(-1)  # (batch, n_tasks)
+                pdb.set_trace()
             return proba, logits, embeddings
         else:
             return out
