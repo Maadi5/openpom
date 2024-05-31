@@ -9,8 +9,8 @@ from deepchem.models.losses import Loss, L2Loss
 from deepchem.models.torch_models.torch_model import TorchModel
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
-from openpom.layers.pom_ffn import CustomPositionwiseFeedForward
-from openpom.utils.loss import CustomMultiLabelLoss
+from openpom.layers.pom_ffn2 import CustomPositionwiseFeedForward
+from openpom.utils.loss2 import CustomMultiLabelLoss
 from openpom.utils.optimizer import get_optimizer
 
 try:
@@ -212,6 +212,45 @@ class MPNNPOM(nn.Module):
             dropout_p=ffn_dropout_p,
             dropout_at_input_no_act=ffn_dropout_at_input_no_act)
 
+        if ffn_activation == 'relu':
+            self.activation = nn.ReLU()
+
+        elif ffn_activation == 'leakyrelu':
+            self.activation = nn.LeakyReLU(0.1)
+
+        elif ffn_activation == 'prelu':
+            self.activation = nn.PReLU()
+
+        elif ffn_activation == 'tanh':
+            self.activation = nn.Tanh()
+
+        elif ffn_activation == 'selu':
+            self.activation = nn.SELU()
+
+        elif ffn_activation == 'elu':
+            self.activation = nn.ELU()
+
+        elif ffn_activation == 'linear':
+            self.activation = lambda x: x
+
+        self.n_layers: int = len(d_hidden_list) + 1
+
+        # Set linear layers
+        if self.n_layers == 1:
+            linears: List = [nn.Linear(ffn_input, self.ffn_output)]
+
+        else:
+            linears = [nn.Linear(ffn_input, d_hidden_list[0])]
+            for idx in range(1, len(d_hidden_list)):
+                linears.append(
+                    nn.Linear(d_hidden_list[idx - 1], d_hidden_list[idx]))
+            linears.append(nn.Linear(d_hidden_list[-1], self.ffn_output))
+
+        self.linears: nn.ModuleList = nn.ModuleList(linears)
+        dropout_layer: nn.Dropout = nn.Dropout(ffn_dropout_p)
+        self.dropout_p: nn.ModuleList = nn.ModuleList(
+            [dropout_layer for _ in range(self.n_layers)])
+
     def _readout(self, g: DGLGraph, node_encodings: torch.Tensor,
                  edge_feats: torch.Tensor) -> torch.Tensor:
         """
@@ -281,8 +320,31 @@ class MPNNPOM(nn.Module):
         # batch_size x (node_out_feats + edge_out_feats)
         return batch_mol_hidden_states
 
+    def get_embeddings(self, g):
+        node_feats: torch.Tensor = g.ndata[self.nfeat_name]
+        edge_feats: torch.Tensor = g.edata[self.efeat_name]
+
+        node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
+
+        molecular_encodings: torch.Tensor = self._readout(
+            g, node_encodings, edge_feats)
+        if self.readout_type == 'global_sum_pooling':
+            molecular_encodings = F.softmax(molecular_encodings, dim=1)
+
+        embeddings: torch.Tensor
+        embeddings = self.ffn(molecular_encodings)
+        return embeddings
+
+    def get_logits_from_output(self, output):
+        if self.n_tasks == 1:
+            logits: torch.Tensor = output.view(-1, self.n_classes)
+        else:
+            logits = output.view(-1, self.n_tasks, self.n_classes)
+
+        return logits
+
     def forward(
-        self, g: DGLGraph
+            self, g: DGLGraph
     ) -> Union[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
         """
         Foward pass for MPNNPOM class. It also returns embeddings for POM.
@@ -309,33 +371,34 @@ class MPNNPOM(nn.Module):
             its shape will be ``(dgl_graph.batch_size, self.n_classes)``
             if self.n_tasks is 1.
         """
+        embeddings = self.get_embeddings(g)
+        x = self.dropout_p[self.n_layers - 2](
+            self.activation(embeddings))
+        out = self.linears[-1](x)
+
+        if self.mode == 'classification':
+            logits = self.get_logits_from_output(output=out)
+            proba: torch.Tensor = F.sigmoid(logits)  # (batch, n_tasks, classes)
+            if self.n_classes == 1:
+                proba = proba.squeeze(-1)  # (batch, n_tasks)
+
+            # pdb.set_trace()
+            return logits  # proba, logits, embeddings
+        else:
+            return out
+
+    def get_penultimate_activations(self, g: DGLGraph) -> torch.Tensor:
         node_feats: torch.Tensor = g.ndata[self.nfeat_name]
         edge_feats: torch.Tensor = g.edata[self.efeat_name]
 
         node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
+        molecular_encodings: torch.Tensor = self._readout(g, node_encodings, edge_feats)
 
-        molecular_encodings: torch.Tensor = self._readout(
-            g, node_encodings, edge_feats)
         if self.readout_type == 'global_sum_pooling':
             molecular_encodings = F.softmax(molecular_encodings, dim=1)
 
-        embeddings: torch.Tensor
-        out: torch.Tensor
-        embeddings, out = self.ffn(molecular_encodings)
-
-        if self.mode == 'classification':
-            if self.n_tasks == 1:
-                logits: torch.Tensor = out.view(-1, self.n_classes)
-            else:
-                logits = out.view(-1, self.n_tasks, self.n_classes)
-            proba: torch.Tensor = F.sigmoid(
-                logits)  # (batch, n_tasks, classes)
-            if self.n_classes == 1:
-                proba = proba.squeeze(-1)  # (batch, n_tasks)
-                # pdb.set_trace()
-            return proba, logits, embeddings
-        else:
-            return out
+        embeddings = self.ffn(molecular_encodings)
+        return embeddings
 
 
 class MPNNPOMModel(TorchModel):
@@ -529,7 +592,7 @@ class MPNNPOMModel(TorchModel):
                 class_imbalance_ratio=class_imbalance_ratio,
                 loss_aggr_type=loss_aggr_type,
                 device=device_name)
-            output_types = ['prediction', 'loss', 'embedding']
+            output_types = ['prediction'] #, 'loss', 'embedding']
 
         optimizer: Optimizer = get_optimizer(optimizer_name)
         optimizer.learning_rate = learning_rate
@@ -570,7 +633,7 @@ class MPNNPOMModel(TorchModel):
         return l1_norm + l2_norm
 
     def _prepare_batch(
-        self, batch: Tuple[List, List, List]
+            self, batch: Tuple[List, List, List]
     ) -> Tuple[DGLGraph, List[torch.Tensor], List[torch.Tensor]]:
         """Create batch data for MPNN.
 
@@ -602,3 +665,9 @@ class MPNNPOMModel(TorchModel):
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(
             ([], labels, weights))
         return g, labels, weights
+
+    def forward(self, g: DGLGraph) -> torch.Tensor:
+        """
+        Forward pass for MPNNPOMModel.
+        """
+        return self.model(g)
