@@ -10,7 +10,7 @@ from deepchem.models.torch_models.torch_model import TorchModel
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
 from openpom.layers.pom_ffn2 import CustomPositionwiseFeedForward
-from openpom.utils.loss2 import CustomMultiLabelLoss
+from openpom.utils.loss import CustomMultiLabelLoss
 from openpom.utils.optimizer import get_optimizer
 
 try:
