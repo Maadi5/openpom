@@ -1,6 +1,7 @@
 import torch
 from typing import Optional, Callable, List
 from deepchem.models.losses import Loss
+import pdb
 
 
 class CustomMultiLabelLoss(Loss):
@@ -84,6 +85,7 @@ class CustomMultiLabelLoss(Loss):
             # to (batch_size, classes, tasks)
             # CrossEntropyLoss only supports (batch_size, classes, tasks)
             # This is for API consistency
+            pbd.set_trace()
             if len(output.shape) == 3:
                 output = output.permute(0, 2, 1)
 
