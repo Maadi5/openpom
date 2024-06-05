@@ -597,7 +597,7 @@ class TorchModel(Model):
             # if self.n_classes == 1:
             #     output_values = proba.squeeze(-1)  # (batch, n_tasks)
             print('print output_values: ', output_values.shape)
-            print(' contents: ', output_values[0])
+            # print(' contents: ', output_values[0])
             if isinstance(output_values, torch.Tensor):
                 output_values = [output_values]
             output_values = [t.detach().cpu().numpy() for t in output_values]
@@ -643,6 +643,7 @@ class TorchModel(Model):
             for v in variances:
                 final_variances.append(np.concatenate(v, axis=0))
             return zip(final_results, final_variances)
+        print('final results: ', final_results.shape)
         if len(final_results) == 1:
             return final_results[0]
         else:
