@@ -348,7 +348,7 @@ class MPNNPOM(nn.Module):
 
     def forward(
             self, g: DGLGraph
-    ) -> Union[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> torch.Tensor:
         """
         Foward pass for MPNNPOM class. It also returns embeddings for POM.
 
@@ -381,9 +381,9 @@ class MPNNPOM(nn.Module):
 
         if self.mode == 'classification':
             logits = self.get_logits_from_output(output=out)
-            proba: torch.Tensor = F.sigmoid(logits)  # (batch, n_tasks, classes)
-            if self.n_classes == 1:
-                proba = proba.squeeze(-1)  # (batch, n_tasks)
+            # proba: torch.Tensor = F.sigmoid(logits)  # (batch, n_tasks, classes)
+            # if self.n_classes == 1:
+            #     proba = proba.squeeze(-1)  # (batch, n_tasks)
 
             # pdb.set_trace()
             return logits  # proba, logits, embeddings

@@ -593,7 +593,8 @@ class TorchModel(Model):
             if isinstance(inputs, list) and len(inputs) == 1:
                 inputs = inputs[0]
             output_values = self.model(inputs)
-            proba: torch.Tensor = F.sigmoid(output_values)  # (batch, n_tasks, classes)
+            # print('print output_values: ', output_values.shape)
+            output_values: torch.Tensor = F.sigmoid(output_values)  # (batch, n_tasks, classes)
             # if self.n_classes == 1:
             #     output_values = proba.squeeze(-1)  # (batch, n_tasks)
             if isinstance(output_values, torch.Tensor):
