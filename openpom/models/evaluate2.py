@@ -303,6 +303,8 @@ class Evaluator(object):
         y = self.dataset.y
         y = dc.trans.undo_transforms(y, self.output_transformers)
         w = self.dataset.w
+        print('y.shape: ', y.shape)
+        print('w.shape: ', w.shape)
 
         y_pred = self.model.predict(self.dataset, self.output_transformers)
         n_tasks = len(self.dataset.get_task_names())
