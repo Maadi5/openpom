@@ -13,7 +13,7 @@ import datetime
 from deepchem.data import Dataset, NumpyDataset
 from deepchem.metrics import Metric
 from deepchem.models.losses import Loss
-from deepchem.models.models import Model
+from openpom.models.models2 import Model
 from deepchem.models.optimizers import Adam, Optimizer, LearningRateSchedule
 from deepchem.trans import Transformer, undo_transforms
 from openpom.models.evaluate2 import GeneratorEvaluator
