@@ -16,7 +16,7 @@ from deepchem.models.losses import Loss
 from deepchem.models.models import Model
 from deepchem.models.optimizers import Adam, Optimizer, LearningRateSchedule
 from deepchem.trans import Transformer, undo_transforms
-from deepchem.utils.evaluate import GeneratorEvaluator
+from openpom.models.evaluate2 import GeneratorEvaluator
 
 from collections.abc import Sequence as SequenceCollection
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Union
