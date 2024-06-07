@@ -8,8 +8,6 @@ from typing import List, Tuple, Union, Optional, Callable, Dict
 from deepchem.models.losses import Loss, L2Loss
 # from deepchem.models.torch_models.torch_model import TorchModel
 from  openpom.models.torch_model2 import TorchModel
-# from openpom.models.mpnn_pom2 import TorchModel
-
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
 from openpom.layers.pom_ffn2 import CustomPositionwiseFeedForward
