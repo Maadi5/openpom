@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from typing import List, Tuple, Union, Optional, Callable, Dict
 
 from deepchem.models.losses import Loss, L2Loss
-from deepchem.models.torch_models.torch_model import TorchModel
+from  openpom.models.torch_model1 import TorchModel
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
 from openpom.layers.pom_ffn import CustomPositionwiseFeedForward
@@ -602,3 +602,154 @@ class MPNNPOMModel(TorchModel):
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(
             ([], labels, weights))
         return g, labels, weights
+
+if __name__ == "__main__":
+
+    TASKS = [
+        'alcoholic', 'aldehydic', 'alliaceous', 'almond', 'amber', 'animal',
+        'anisic', 'apple', 'apricot', 'aromatic', 'balsamic', 'banana', 'beefy',
+        'bergamot', 'berry', 'bitter', 'black currant', 'brandy', 'burnt',
+        'buttery', 'cabbage', 'camphoreous', 'caramellic', 'cedar', 'celery',
+        'chamomile', 'cheesy', 'cherry', 'chocolate', 'cinnamon', 'citrus', 'clean',
+        'clove', 'cocoa', 'coconut', 'coffee', 'cognac', 'cooked', 'cooling',
+        'cortex', 'coumarinic', 'creamy', 'cucumber', 'dairy', 'dry', 'earthy',
+        'ethereal', 'fatty', 'fermented', 'fishy', 'floral', 'fresh', 'fruit skin',
+        'fruity', 'garlic', 'gassy', 'geranium', 'grape', 'grapefruit', 'grassy',
+        'green', 'hawthorn', 'hay', 'hazelnut', 'herbal', 'honey', 'hyacinth',
+        'jasmin', 'juicy', 'ketonic', 'lactonic', 'lavender', 'leafy', 'leathery',
+        'lemon', 'lily', 'malty', 'meaty', 'medicinal', 'melon', 'metallic',
+        'milky', 'mint', 'muguet', 'mushroom', 'musk', 'musty', 'natural', 'nutty',
+        'odorless', 'oily', 'onion', 'orange', 'orangeflower', 'orris', 'ozone',
+        'peach', 'pear', 'phenolic', 'pine', 'pineapple', 'plum', 'popcorn',
+        'potato', 'powdery', 'pungent', 'radish', 'raspberry', 'ripe', 'roasted',
+        'rose', 'rummy', 'sandalwood', 'savory', 'sharp', 'smoky', 'soapy',
+        'solvent', 'sour', 'spicy', 'strawberry', 'sulfurous', 'sweaty', 'sweet',
+        'tea', 'terpenic', 'tobacco', 'tomato', 'tropical', 'vanilla', 'vegetable',
+        'vetiver', 'violet', 'warm', 'waxy', 'weedy', 'winey', 'woody'
+    ]
+
+    print("No of tasks: ", len(TASKS))
+    n_tasks = len(TASKS)
+
+    import deepchem as dc
+    from openpom.feat.graph_featurizer import GraphFeaturizer, GraphConvConstants
+    from openpom.utils.data_utils import get_class_imbalance_ratio, IterativeStratifiedSplitter
+    from openpom.models.mpnn_pom import MPNNPOMModel, MPNNPOM
+    from datetime import datetime
+    from tqdm import tqdm
+    import torch
+    import numpy as np
+    from sklearn.metrics import roc_auc_score
+    from rdkit import Chem
+    import pdb
+
+    # uncomment and run if no splits saved yet
+
+    # download curated dataset
+    # !wget https://raw.githubusercontent.com/ARY2260/openpom/main/openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv
+
+    # The curated dataset can also found at `openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv` in the repo.
+
+    input_file = r'openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv'  # or new downloaded file path
+
+    # get dataset
+
+    featurizer = GraphFeaturizer()
+    smiles_field = 'nonStereoSMILES'
+    loader = dc.data.CSVLoader(tasks=TASKS,
+                               feature_field=smiles_field,
+                               featurizer=featurizer)
+    dataset = loader.create_dataset(inputs=[input_file])
+    n_tasks = len(dataset.tasks)
+
+    # get train valid test splits
+    splitter = IterativeStratifiedSplitter(order=2)
+    train_dataset, test_dataset = splitter.train_test_split(dataset, frac_train=0.8, train_dir='./splits/train_data',
+                                                            test_dir='./splits/test_data')
+
+    print("train_dataset: ", len(train_dataset))
+    print("test_dataset: ", len(test_dataset))
+
+    train_dataset = dc.data.DiskDataset('./splits/train_data')
+    test_dataset = dc.data.DiskDataset('./splits/test_data')
+    print("train_dataset: ", len(train_dataset))
+    print("test_dataset: ", len(test_dataset))
+
+    train_ratios = get_class_imbalance_ratio(train_dataset)
+    assert len(train_ratios) == n_tasks
+
+    # learning_rate = 0.001
+    learning_rate = dc.models.optimizers.ExponentialDecay(initial_rate=0.001, decay_rate=0.5, decay_steps=32 * 20,
+                                                          staircase=True)
+    metric = dc.metrics.Metric(dc.metrics.roc_auc_score)
+    accuracy_metric = dc.metrics.Metric(dc.metrics.accuracy_score)
+    precision_metric = dc.metrics.Metric(dc.metrics.precision_score)
+    recall_metric = dc.metrics.Metric(dc.metrics.recall_score)
+
+    # no of models in the ensemble
+    n_models = 10
+
+    # no of epochs each model is trained for
+    nb_epoch = 62
+
+    for i in tqdm(range(n_models)):
+        model = MPNNPOMModel(n_tasks=n_tasks,
+                             batch_size=128,
+                             learning_rate=learning_rate,
+                             class_imbalance_ratio=train_ratios,
+                             loss_aggr_type='sum',
+                             node_out_feats=100,
+                             edge_hidden_feats=75,
+                             edge_out_feats=100,
+                             num_step_message_passing=5,
+                             mpnn_residual=True,
+                             message_aggregator_type='sum',
+                             mode='classification',
+                             number_atom_features=GraphConvConstants.ATOM_FDIM,
+                             number_bond_features=GraphConvConstants.BOND_FDIM,
+                             n_classes=1,
+                             readout_type='set2set',
+                             num_step_set2set=3,
+                             num_layer_set2set=2,
+                             ffn_hidden_list=[392, 392],
+                             ffn_embeddings=256,
+                             ffn_activation='relu',
+                             ffn_dropout_p=0.12,
+                             ffn_dropout_at_input_no_act=False,
+                             weight_decay=1e-5,
+                             self_loop=False,
+                             optimizer_name='adam',
+                             log_frequency=32,
+                             model_dir=f'./ensemble_models2/experiments_{i + 1}',
+                             device_name='cuda')
+
+        start_time = datetime.now()
+
+        # fit model
+        loss = model.fit(
+            train_dataset,
+            nb_epoch=nb_epoch,
+            max_checkpoints_to_keep=1,
+            deterministic=False,
+            restore=False)
+        end_time = datetime.now()
+
+        # pdb.set_trace()
+        train_acc = model.evaluate(train_dataset, [accuracy_metric])['accuracy_score']
+        test_acc = model.evaluate(test_dataset, [accuracy_metric])['accuracy_score']
+
+        train_precision = model.evaluate(train_dataset, [precision_metric])['precision_score']
+        test_precision = model.evaluate(test_dataset, [precision_metric])['precision_score']
+
+        train_recall = model.evaluate(train_dataset, [recall_metric])['recall_score']
+        test_recall = model.evaluate(test_dataset, [recall_metric])['recall_score']
+
+        train_scores = model.evaluate(train_dataset, [metric])['roc_auc_score']
+        test_scores = model.evaluate(test_dataset, [metric])['roc_auc_score']
+
+        print(
+            f"loss = {loss}; train_acc = {train_acc}, train_precision = {train_precision}, train_recall= {train_recall}; test_acc = {test_acc}, test_precision = {test_precision}, test_recall = {test_recall}; time_taken = {str(end_time - start_time)}")
+        print(f"train roc_auc = {train_scores}; test_roc_auc = {test_scores}")
+        model.save_checkpoint()  # saves final checkpoint => `checkpoint2.pt`
+        del model
+        torch.cuda.empty_cache()
