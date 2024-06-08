@@ -3,9 +3,9 @@ pandas
 numpy
 rdkit
 deepchem
-torch
-torchvision
-torchaudio
+# torch
+# torchvision
+# torchaudio
 dgllife
 pytest
 ipykernel
