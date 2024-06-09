@@ -303,8 +303,6 @@ class Evaluator(object):
         y = self.dataset.y
         y = dc.trans.undo_transforms(y, self.output_transformers)
         w = self.dataset.w
-        print('y.shape: ', y.shape)
-        print('w.shape: ', w.shape)
 
         y_pred = self.model.predict(self.dataset, self.output_transformers)
         n_tasks = len(self.dataset.get_task_names())
@@ -472,10 +470,6 @@ class GeneratorEvaluator(object):
         # Process predictions and populate y/w lists
         y_pred = self.model.predict_on_generator(generator_closure())
 
-        print('y_pred in eval: ', y_pred.shape)
-
-        print('y_true in eval: ', y, w)
-
         # Combine labels/weights
         y = np.concatenate(y, axis=0)
         w = np.concatenate(w, axis=0)
@@ -486,7 +480,6 @@ class GeneratorEvaluator(object):
         # Undo data transformations.
         y_true = dc.trans.undo_transforms(y, self.output_transformers)
         y_pred = dc.trans.undo_transforms(y_pred, self.output_transformers)
-        print('y_true in eval: ', y_true)
 
         # Compute multitask metrics
         for metric in metrics:
