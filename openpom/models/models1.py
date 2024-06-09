@@ -13,7 +13,7 @@ import numpy as np
 from deepchem.data import Dataset
 from deepchem.metrics import Metric
 from deepchem.trans import Transformer, undo_transforms
-from deepchem.utils.evaluate import Evaluator
+from openpom.models.evaluate1 import Evaluator
 from deepchem.utils.typing import OneOrMany
 
 logger = logging.getLogger(__name__)
