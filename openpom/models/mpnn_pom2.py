@@ -322,8 +322,8 @@ class MPNNPOM(nn.Module):
         return batch_mol_hidden_states
 
     def get_embeddings(self, g):
-        node_feats: torch.Tensor = g.ndata[self.nfeat_name]
-        edge_feats: torch.Tensor = g.edata[self.efeat_name]
+        node_feats: torch.Tensor = torch.tensor(g.ndata[self.nfeat_name], requires_grad = True)
+        edge_feats: torch.Tensor = torch.tensor(g.edata[self.efeat_name], requires_grad = True)
 
         node_encodings: torch.Tensor = self.mpnn(g, node_feats, edge_feats)
 

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from typing import List, Tuple, Union, Optional, Callable, Dict
 
 from deepchem.models.losses import Loss, L2Loss
-from  openpom.models.torch_model1 import TorchModel
+from openpom.models.torch_model1 import TorchModel
 from deepchem.models.optimizers import Optimizer, LearningRateSchedule
 
 from openpom.layers.pom_ffn import CustomPositionwiseFeedForward
