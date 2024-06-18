@@ -13,15 +13,16 @@ import datetime
 from deepchem.data import Dataset, NumpyDataset
 from deepchem.metrics import Metric
 from deepchem.models.losses import Loss
-from openpom.models.models1 import Model
+from openpom.models.models2 import Model
 from deepchem.models.optimizers import Adam, Optimizer, LearningRateSchedule
 from deepchem.trans import Transformer, undo_transforms
-from openpom.models.evaluate1 import GeneratorEvaluator
+from openpom.models.evaluate2 import GeneratorEvaluator
 
 from collections.abc import Sequence as SequenceCollection
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 from deepchem.utils.typing import LossFn, OneOrMany
 from deepchem.models.wandblogger import WandbLogger
+import torch.nn.functional as F
 
 try:
     import wandb
@@ -594,6 +595,9 @@ class TorchModel(Model):
                 inputs = inputs[0]
             self.model.load_graph_obj(inputs)
             output_values = self.model(node_features, edge_features)
+            output_values: torch.Tensor = F.sigmoid(output_values)  # (batch, n_tasks, classes)
+            # if self.n_classes == 1:
+            output_values = output_values.squeeze(-1)  # (batch, n_tasks)
             if isinstance(output_values, torch.Tensor):
                 output_values = [output_values]
             output_values = [t.detach().cpu().numpy() for t in output_values]
