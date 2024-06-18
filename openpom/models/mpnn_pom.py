@@ -747,8 +747,7 @@ if __name__ == "__main__":
         train_scores = model.evaluate(train_dataset, [metric])['roc_auc_score']
         test_scores = model.evaluate(test_dataset, [metric])['roc_auc_score']
 
-        print(
-            f"loss = {loss}; train_acc = {train_acc}, train_precision = {train_precision}, train_recall= {train_recall}; test_acc = {test_acc}, test_precision = {test_precision}, test_recall = {test_recall}; time_taken = {str(end_time - start_time)}")
+        print(f"loss = {loss}; train_acc = {train_acc}, train_precision = {train_precision}, train_recall= {train_recall}; test_acc = {test_acc}, test_precision = {test_precision}, test_recall = {test_recall}; time_taken = {str(end_time - start_time)}")
         print(f"train roc_auc = {train_scores}; test_roc_auc = {test_scores}")
         model.save_checkpoint()  # saves final checkpoint => `checkpoint2.pt`
         del model

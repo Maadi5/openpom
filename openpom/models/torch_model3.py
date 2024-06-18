@@ -422,7 +422,7 @@ class TorchModel(Model):
                 self.restore()
                 restore = False
             inputs: OneOrMany[torch.Tensor]
-            inputs, labels, weights = self._prepare_batch(batch)
+            inputs, node_feats, edge_feats, labels, weights = self._prepare_batch(batch)
 
             # Execute the loss function, accumulating the gradients.
 
@@ -430,7 +430,8 @@ class TorchModel(Model):
                 inputs = inputs[0]
 
             optimizer.zero_grad()
-            outputs = self.model(inputs)
+            self.model.load_graph_obj(inputs)
+            outputs = self.model(node_feats, edge_feats)
             if isinstance(outputs, torch.Tensor):
                 outputs = [outputs]
             if self._loss_outputs is not None:
