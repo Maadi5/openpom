@@ -432,7 +432,7 @@ class TorchModel(Model):
 
             optimizer.zero_grad()
             self.model.load_graph_obj(inputs)
-            outputs = self.model(node_feats, edge_feats, torch.tensor([1]))
+            outputs = self.model(node_feats, edge_feats, torch.tensor([1], device=self.device))
             if isinstance(outputs, torch.Tensor):
                 outputs = [outputs]
             if self._loss_outputs is not None:
@@ -594,7 +594,7 @@ class TorchModel(Model):
             if isinstance(inputs, list) and len(inputs) == 1:
                 inputs = inputs[0]
             self.model.load_graph_obj(inputs)
-            output_values = self.model(node_features, edge_features, torch.tensor([1]))
+            output_values = self.model(node_features, edge_features, torch.tensor([1], device= self.device))
             output_values: torch.Tensor = F.sigmoid(output_values)  # (batch, n_tasks, classes)
             # if self.n_classes == 1:
             output_values = output_values.squeeze(-1)  # (batch, n_tasks)
