@@ -308,7 +308,7 @@ class MPNNPOM(nn.Module):
     def multi_graph(self, num):
         num = list(num.shape)[0]
         list_of_copies = [self.g] * num
-        self.g = dgl.batch(list_of_copies).to('cpu')
+        self.g = dgl.batch(list_of_copies).to(self.device)
 
     # def get_embeddings(self, node_feats, edge_feats):
     #     # node_feats: torch.Tensor = torch.tensor(g.ndata[self.nfeat_name], requires_grad = True)
