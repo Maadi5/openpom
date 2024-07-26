@@ -235,7 +235,7 @@ class GraphFeaturizer(MolecularFeaturizer):
                          edge_index=edge_index,
                          edge_features=f_bonds)
 
-    def _featurize2(self, datapoint: RDKitMol, **kwargs) -> tuple:
+    def featurize2(self, datapoint: RDKitMol, **kwargs) -> tuple:
         """Calculate molecule graph features from RDKit mol object.
 
         Parameters
