@@ -234,3 +234,49 @@ class GraphFeaturizer(MolecularFeaturizer):
         return GraphData(node_features=f_atoms,
                          edge_index=edge_index,
                          edge_features=f_bonds)
+
+    def _featurize2(self, datapoint: RDKitMol, **kwargs) -> tuple:
+        """Calculate molecule graph features from RDKit mol object.
+
+        Parameters
+        ----------
+        datapoint: RDKitMol
+            RDKit mol object.
+
+        Returns
+        -------
+        graph: GraphData
+            A molecule graph object with features:
+            - node_features: Node feature matrix with shape
+              [num_nodes, num_node_features]
+            - edge_index: Graph connectivity in COO format with shape
+              [2, num_edges]
+            - edge_features: Edge feature matrix with shape
+              [num_edges, num_edge_features]
+        """
+        if isinstance(datapoint, Chem.rdchem.Mol):
+            if self.is_adding_hs:
+                datapoint = Chem.AddHs(datapoint)
+        else:
+            raise ValueError(
+                "Feature field should contain smiles for featurizer!")
+
+        # get atom features
+        f_atoms: np.ndarray = np.asarray(
+            [atom_features(atom) for atom in datapoint.GetAtoms()],
+            dtype=float)
+
+        # get edge(bond) features
+        if len(datapoint.GetBonds()) == 0:
+            f_bonds: np.ndarray = np.empty((0, GraphConvConstants.BOND_FDIM))
+        else:
+            f_bonds_list = []
+            for bond in datapoint.GetBonds():
+                b_feat = 2 * [bond_features(bond)]
+                f_bonds_list.extend(b_feat)
+            f_bonds = np.asarray(f_bonds_list, dtype=float)
+
+        # get edge index
+        edge_index: np.ndarray = self._construct_bond_index(datapoint)
+
+        return GraphData(node_features=f_atoms, edge_index=edge_index, edge_features=f_bonds) , f_atoms, edge_index, f_bonds
