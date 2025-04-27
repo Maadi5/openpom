@@ -511,7 +511,7 @@ class MPNNPOMModel(TorchModel):
         node_feats: torch.Tensor = torch.tensor(g.ndata[self.nfeat_name], requires_grad=True)
         edge_feats: torch.Tensor = torch.tensor(g.edata[self.efeat_name], requires_grad=True)
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(([], labels, weights))
-        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], dtype=torch.float32)
+        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], device=self.device, dtype=torch.float32)
 
 ########################################################################
 # 7) Example main block
