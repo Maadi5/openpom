@@ -89,6 +89,7 @@ class MPNNGNN(nn.Module):
         hidden_feats = node_feats.unsqueeze(0)           # (1, V, node_out_feats)
 
         for _ in range(self.num_step_message_passing):
+            print('nodes shape: ', node_feats.shape, 'edges shape: ', edge_feats.shape)
             node_feats = F.relu(self.gnn_layer(self.g, node_feats, edge_feats))
             node_feats, hidden_feats = self.gru(node_feats.unsqueeze(0), hidden_feats)
             node_feats = node_feats.squeeze(0)
