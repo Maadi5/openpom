@@ -107,6 +107,7 @@ class EmbeddingLayer(nn.Module):
         self.readout_type = readout_type
 
     def forward(self, node_feats, edge_feats):
+        print('embedding layer shapes: ', node_feats.shape, edge_feats.shape)
         node_encodings = self.mpnn(node_feats, edge_feats)
         molecular_encodings = self._readout(node_encodings, edge_feats)
 
@@ -512,7 +513,13 @@ class MPNNPOMModel(TorchModel):
         node_feats: torch.Tensor = torch.tensor(g.ndata[self.nfeat_name], requires_grad=True)
         edge_feats: torch.Tensor = torch.tensor(g.edata[self.efeat_name], requires_grad=True)
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(([], labels, weights))
-        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], device=self.device, dtype=torch.float32) #.reshape(,1024)
+        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], device=self.device, dtype=torch.float32)
+        
+    def forward(self, g: DGLGraph) -> torch.Tensor:
+        """
+        Forward pass for MPNNPOMModel.
+        """
+        return self.model(g)
 
 ########################################################################
 # 7) Example main block
