@@ -348,7 +348,7 @@ class MPNNPOMWithFingerprint(nn.Module):
         # Base graph model
         self.base_model = base_mpnn_pom
         self.load_graph_obj = self.base_model.load_graph_obj
-        self.mode = 'classification'#self.base_model.mode
+        self.mode = self.base_model.mode
         self.n_classes = self.base_model.n_classes
         self.n_tasks = self.base_model.n_tasks
 
@@ -377,9 +377,10 @@ class MPNNPOMWithFingerprint(nn.Module):
         # Get base graph-based embeddings
         embeddings = self.base_model(node_feats, edge_feats, multi)
         # Encode fingerprint vector
-        fp_encoded = self.fp_encoder(fp_vector)
+        fp_encoded = self.fp_encoder(fp_vector).view(fp_vector.shape[0], self.fp_out_dim, 1)
         # Concatenate both embeddings
         combined = torch.cat([embeddings, fp_encoded], dim=1)
+        combined = combined.squeeze(-1)
         # Final head produces output
         out = self.combined_head(combined)
 
@@ -437,7 +438,7 @@ class MPNNPOMModel(TorchModel):
             num_step_message_passing=num_step_message_passing,
             mpnn_residual=mpnn_residual,
             message_aggregator_type=message_aggregator_type,
-            mode='regression',#mode,
+            mode= mode,
             number_atom_features=number_atom_features,
             number_bond_features=number_bond_features,
             n_classes=n_classes,
@@ -511,7 +512,7 @@ class MPNNPOMModel(TorchModel):
         node_feats: torch.Tensor = torch.tensor(g.ndata[self.nfeat_name], requires_grad=True)
         edge_feats: torch.Tensor = torch.tensor(g.edata[self.efeat_name], requires_grad=True)
         _, labels, weights = super(MPNNPOMModel, self)._prepare_batch(([], labels, weights))
-        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], device=self.device, dtype=torch.float32)
+        return g, node_feats, edge_feats, labels, weights, torch.tensor([graph['fp_vec'] for graph in inputs[0]], device=self.device, dtype=torch.float32) #.reshape(,1024)
 
 ########################################################################
 # 7) Example main block
