@@ -18,6 +18,8 @@ try:
     import dgl
     from dgl import DGLGraph
     from dgl.nn.pytorch import Set2Set
+    from dgl.nn import Set2Set, GlobalAttentionPooling
+
     from openpom.layers.pom_mpnn_gnn2 import CustomMPNNGNN
 except (ImportError, ModuleNotFoundError):
     raise ImportError('This module requires dgl and dgllife')
@@ -215,6 +217,14 @@ class MPNNPOM(nn.Module):
             ffn_input: int = 2 * (node_out_feats + edge_out_feats)
         elif self.readout_type == 'global_sum_pooling':
             ffn_input = node_out_feats + edge_out_feats
+        elif self.readout_type == 'global_attention_pooling':
+            # Gate MLP for attention
+            self.attention_gate = nn.Sequential(
+                nn.Linear(node_out_feats + edge_out_feats, 1),
+                nn.Sigmoid()
+            )
+            self.global_attention_pool = GlobalAttentionPooling(self.attention_gate)
+            ffn_input = node_out_feats + edge_out_feats
         else:
             raise Exception("readout_type invalid")
 
@@ -336,6 +346,8 @@ class MPNNPOM(nn.Module):
                 self.g, self.g.ndata['src_msg_sum'])
         elif self.readout_type == 'global_sum_pooling':
             batch_mol_hidden_states = dgl.sum_nodes(self.g, 'src_msg_sum')
+        elif self.readout_type == 'global_attention_pooling':
+            batch_mol_hidden_states = self.global_attention_pool(self.g, self.g.ndata['src_msg_sum'])
 
         # batch_size x (node_out_feats + edge_out_feats)
         return batch_mol_hidden_states
