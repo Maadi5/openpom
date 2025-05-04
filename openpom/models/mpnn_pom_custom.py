@@ -107,7 +107,7 @@ class EmbeddingLayer(nn.Module):
         self.readout_type = readout_type
 
     def forward(self, node_feats, edge_feats):
-        print('embedding layer shapes: ', node_feats.shape, edge_feats.shape)
+        # print('embedding layer shapes: ', node_feats.shape, edge_feats.shape)
         node_encodings = self.mpnn(node_feats, edge_feats)
         molecular_encodings = self._readout(node_encodings, edge_feats)
 
