@@ -47,7 +47,7 @@ class EmbeddingLayer(nn.Module):
 
     def forward(self, node_feats, edge_feats, fp_vector):
         # node_feats and edge_feats should be provided as tensors
-        print('embedding layer shapes: ', node_feats.shape, edge_feats.shape)
+        # print('embedding layer shapes: ', node_feats.shape, edge_feats.shape)
         node_encodings = self.mpnn(node_feats, edge_feats)
         molecular_encodings = self._readout(node_encodings, edge_feats)
 
