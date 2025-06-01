@@ -1,0 +1,225 @@
+general:
+  random_seed: 42
+  use_gpu: true
+
+data:
+  input_csv: "openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv"
+  smiles_column: "nonStereoSMILES"
+  label_columns:
+    - "alcoholic"
+    - "aldehydic"
+    - "alliaceous"
+    - "almond"
+    - "amber"
+    - "animal"
+    - "anisic"
+    - "apple"
+    - "apricot"
+    - "aromatic"
+    - "balsamic"
+    - "banana"
+    - "beefy"
+    - "bergamot"
+    - "berry"
+    - "bitter"
+    - "black currant"
+    - "brandy"
+    - "burnt"
+    - "buttery"
+    - "cabbage"
+    - "camphoreous"
+    - "caramellic"
+    - "cedar"
+    - "celery"
+    - "chamomile"
+    - "cheesy"
+    - "cherry"
+    - "chocolate"
+    - "cinnamon"
+    - "citrus"
+    - "clean"
+    - "clove"
+    - "cocoa"
+    - "coconut"
+    - "coffee"
+    - "cognac"
+    - "cooked"
+    - "cooling"
+    - "cortex"
+    - "coumarinic"
+    - "creamy"
+    - "cucumber"
+    - "dairy"
+    - "dry"
+    - "earthy"
+    - "ethereal"
+    - "fatty"
+    - "fermented"
+    - "fishy"
+    - "floral"
+    - "fresh"
+    - "fruit skin"
+    - "fruity"
+    - "garlic"
+    - "gassy"
+    - "geranium"
+    - "grape"
+    - "grapefruit"
+    - "grassy"
+    - "green"
+    - "hawthorn"
+    - "hay"
+    - "hazelnut"
+    - "herbal"
+    - "honey"
+    - "hyacinth"
+    - "jasmin"
+    - "juicy"
+    - "ketonic"
+    - "lactonic"
+    - "lavender"
+    - "leafy"
+    - "leathery"
+    - "lemon"
+    - "lily"
+    - "malty"
+    - "meaty"
+    - "medicinal"
+    - "melon"
+    - "metallic"
+    - "milky"
+    - "mint"
+    - "muguet"
+    - "mushroom"
+    - "musk"
+    - "musty"
+    - "natural"
+    - "nutty"
+    - "odorless"
+    - "oily"
+    - "onion"
+    - "orange"
+    - "orangeflower"
+    - "orris"
+    - "ozone"
+    - "peach"
+    - "pear"
+    - "phenolic"
+    - "pine"
+    - "pineapple"
+    - "plum"
+    - "popcorn"
+    - "potato"
+    - "powdery"
+    - "pungent"
+    - "radish"
+    - "raspberry"
+    - "ripe"
+    - "roasted"
+    - "rose"
+    - "rummy"
+    - "sandalwood"
+    - "savory"
+    - "sharp"
+    - "smoky"
+    - "soapy"
+    - "solvent"
+    - "sour"
+    - "spicy"
+    - "strawberry"
+    - "sulfurous"
+    - "sweaty"
+    - "sweet"
+    - "tea"
+    - "terpenic"
+    - "tobacco"
+    - "tomato"
+    - "tropical"
+    - "vanilla"
+    - "vegetable"
+    - "vetiver"
+    - "violet"
+    - "warm"
+    - "waxy"
+    - "weedy"
+    - "winey"
+    - "woody"
+  train_test_split_ratio: 0.8
+  use_3d: true
+  radius: 2.0
+
+featurization:
+  method: "mordred"
+  use_cached_descriptors: true
+  ecfp_radius: 2
+  ecfp_nbits: 2048
+  mordred_2d_only: true
+  smiles_standardization: true
+
+dimensionality_reduction:
+  method: "pca"
+  n_components: 128
+  apply_before_modeling: true
+
+embedding_model:
+  use_pretrained: true
+  model_name_or_path: "seyonec/ChemBERTa-zinc-base-v1"
+  pooling_strategy: "mean"
+  max_length: 128
+
+model:
+  backbone: "egnn"
+  hidden_dim: 128
+  use_fingerprint: true
+  fp_dim: 2048
+  fp_hidden: 256
+  mlp_hidden:
+    - 256
+    - 128
+  dropout: 0.2
+
+  num_nearest_neighbors: 0
+  egnn_dropout: 0.0
+  norm_feats: false
+  norm_coors: false
+  valid_radius: 999.0
+  m_pool_method: "sum"
+  pretrained_path: ""
+
+  # No Chemprop keys here anymore
+  use_transformer: false
+  trans_hidden: 256
+
+  use_descs: true
+  descs_hidden: 64
+
+train:
+  use_cuda: true
+  batch_size: 16
+  lr: 0.001
+  weight_decay: 1e-5
+  epochs: 50
+  log_every: 1
+  early_stopping_patience: 5
+
+evaluation:
+  metrics:
+    - "f1"
+    - "roc_auc"
+    - "average_precision"
+  cross_validation_folds: 5
+  output_confusion_matrix: false
+  per_label_metrics: true
+
+logging:
+  log_to_file: true
+  log_dir: "logs"
+  verbosity: "info"
+
+output:
+  save_model: true
+  model_path: "models/final_model.pt"
+  save_embeddings: true
+  embeddings_output_path: "output/embeddings.csv"
+  save_reduced_space: true
+  reduced_space_output_path: "output/reduced_coords.csv"

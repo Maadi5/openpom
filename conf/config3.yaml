@@ -1,0 +1,254 @@
+# conf/config3.yaml
+
+general:
+  random_seed: 42
+  use_gpu: true
+
+data:
+  # Path to your CSV file
+  input_csv: "openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv" #"data/input.csv"
+  # The column name in your CSV that holds SMILES strings
+  smiles_column: "nonStereoSMILES"
+  # All odour‐label column names from TASKS (exactly as they appear in the CSV header)
+  label_columns:
+    - "alcoholic"
+    - "aldehydic"
+    - "alliaceous"
+    - "almond"
+    - "amber"
+    - "animal"
+    - "anisic"
+    - "apple"
+    - "apricot"
+    - "aromatic"
+    - "balsamic"
+    - "banana"
+    - "beefy"
+    - "bergamot"
+    - "berry"
+    - "bitter"
+    - "black currant"
+    - "brandy"
+    - "burnt"
+    - "buttery"
+    - "cabbage"
+    - "camphoreous"
+    - "caramellic"
+    - "cedar"
+    - "celery"
+    - "chamomile"
+    - "cheesy"
+    - "cherry"
+    - "chocolate"
+    - "cinnamon"
+    - "citrus"
+    - "clean"
+    - "clove"
+    - "cocoa"
+    - "coconut"
+    - "coffee"
+    - "cognac"
+    - "cooked"
+    - "cooling"
+    - "cortex"
+    - "coumarinic"
+    - "creamy"
+    - "cucumber"
+    - "dairy"
+    - "dry"
+    - "earthy"
+    - "ethereal"
+    - "fatty"
+    - "fermented"
+    - "fishy"
+    - "floral"
+    - "fresh"
+    - "fruit skin"
+    - "fruity"
+    - "garlic"
+    - "gassy"
+    - "geranium"
+    - "grape"
+    - "grapefruit"
+    - "grassy"
+    - "green"
+    - "hawthorn"
+    - "hay"
+    - "hazelnut"
+    - "herbal"
+    - "honey"
+    - "hyacinth"
+    - "jasmin"
+    - "juicy"
+    - "ketonic"
+    - "lactonic"
+    - "lavender"
+    - "leafy"
+    - "leathery"
+    - "lemon"
+    - "lily"
+    - "malty"
+    - "meaty"
+    - "medicinal"
+    - "melon"
+    - "metallic"
+    - "milky"
+    - "mint"
+    - "muguet"
+    - "mushroom"
+    - "musk"
+    - "musty"
+    - "natural"
+    - "nutty"
+    - "odorless"
+    - "oily"
+    - "onion"
+    - "orange"
+    - "orangeflower"
+    - "orris"
+    - "ozone"
+    - "peach"
+    - "pear"
+    - "phenolic"
+    - "pine"
+    - "pineapple"
+    - "plum"
+    - "popcorn"
+    - "potato"
+    - "powdery"
+    - "pungent"
+    - "radish"
+    - "raspberry"
+    - "ripe"
+    - "roasted"
+    - "rose"
+    - "rummy"
+    - "sandalwood"
+    - "savory"
+    - "sharp"
+    - "smoky"
+    - "soapy"
+    - "solvent"
+    - "sour"
+    - "spicy"
+    - "strawberry"
+    - "sulfurous"
+    - "sweaty"
+    - "sweet"
+    - "tea"
+    - "terpenic"
+    - "tobacco"
+    - "tomato"
+    - "tropical"
+    - "vanilla"
+    - "vegetable"
+    - "vetiver"
+    - "violet"
+    - "warm"
+    - "waxy"
+    - "weedy"
+    - "winey"
+    - "woody"
+  # Fraction of data to use for training; the rest goes to test
+  train_test_split_ratio: 0.8
+  # Whether or not to attempt 3D embedding
+  use_3d: true
+  # Radius (in Å) for neighbor search (only used if pos is not None)
+  radius: 2.0
+
+featurization:
+  method: "mordred"            # (kept for future—unused by new_arch2.py)
+  use_cached_descriptors: true
+  ecfp_radius: 2
+  ecfp_nbits: 2048
+  mordred_2d_only: true
+  smiles_standardization: true
+
+dimensionality_reduction:
+  method: "pca"                # (kept for future—unused by new_arch2.py)
+  n_components: 128
+  apply_before_modeling: true
+
+embedding_model:
+  use_pretrained: true
+  model_name_or_path: "seyonec/ChemBERTa-zinc-base-v1"
+  pooling_strategy: "mean"
+  max_length: 128
+
+model:
+  backbone: "egnn"            # (informational—dense EGNN is always used)
+  hidden_dim: 128
+  use_fingerprint: true
+  fp_dim: 2048
+  fp_hidden: 256
+  mlp_hidden:
+    - 256
+    - 128
+  dropout: 0.2
+
+  # EGNN‐PyTorch specific options:
+  #   If you want full connectivity, set num_nearest_neighbors: 0
+  num_nearest_neighbors: 0
+  # Dropout inside EGNN layers (0.0 = no dropout)
+  egnn_dropout: 0.0
+  # Whether to apply batch‐norm / layer‐norm to node features
+  norm_feats: false
+  # Whether to apply batch‐norm / layer‐norm to coordinates
+  norm_coors: false
+  # Limit neighbor edges by radius; set to a large number for full connectivity
+  valid_radius: 999.0
+  # How EGNN pools “messages” internally (sum or mean) if using the EGNN pooling option
+  m_pool_method: "sum"
+  # If you have a pretrained checkpoint you want to load, put its path here (or leave empty)
+  pretrained_path: ""
+  # ─── New keys for Transformer embedding ───
+  use_transformer: false   # set to true if you want to fuse ChemBERTa/MoLFormer embeddings
+  trans_hidden: 256        # hidden‐dim for the Transformer embedding’s MLP (only used if use_transformer = true)
+
+  # Number of D-MPNN message‐passing layers
+  mpnn_layers: 3        # or 4, or whatever depth you want
+
+  # # (You should already have “use_transformer” and “trans_hidden” from last time)
+  # use_transformer: false
+  # trans_hidden: 256
+
+  # If you plan to fuse extra descriptors:
+  use_descs: true       # or false
+  descs_hidden: 64      # size of MLP for descriptors
+  ff_hidden: 256
+
+  # # And fingerprint keys:
+  # use_fingerprint: true
+  # fp_dim: 2048
+  # fp_hidden: 256
+
+
+train:
+  use_cuda: true
+  batch_size: 16
+  lr: 0.001
+  weight_decay: 1e-5
+  epochs: 50
+  log_every: 1
+
+evaluation:
+  metrics:
+    - "f1"
+    - "roc_auc"
+    - "average_precision"
+  cross_validation_folds: 5
+  output_confusion_matrix: false
+  per_label_metrics: true
+
+logging:
+  log_to_file: true
+  log_dir: "logs"
+  verbosity: "info"
+
+output:
+  save_model: true
+  model_path: "models/final_model.pt"
+  save_embeddings: true
+  embeddings_output_path: "output/embeddings.csv"
+  save_reduced_space: true
+  reduced_space_output_path: "output/reduced_coords.csv"

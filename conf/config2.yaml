@@ -1,0 +1,92 @@
+# conf/config2.yaml
+
+general:
+  random_seed: 42
+  use_gpu: true
+
+data:
+  # This must be called "input_csv" because the code does `pd.read_csv(cfg.data.input_csv)`
+  input_csv: "openpom/data/curated_datasets/curated_GS_LF_merged_4983.csv"
+  # the code references cfg.data.smiles_column
+  smiles_column: "nonStereoSMILES"
+  # your code does `row[label_cols]`, so this must be a list of actual column names
+  # or else "auto" (you can handle "auto" in code, but here we make it explicit)
+  label_columns:
+    - "floral"
+    - "woody"
+    - "citrus"
+    # …etc… (fill in with your actual odor‐label column names)
+  # The featurize_smiles function needs `cfg.data.use_3d` and `cfg.data.radius`
+  use_3d: true
+  radius: 2.0
+
+featurization:
+  method: "mordred"            # (unused by this script, but kept for future)
+  use_cached_descriptors: true
+  ecfp_radius: 2
+  ecfp_nbits: 2048
+  mordred_2d_only: true
+  smiles_standardization: true
+
+dimensionality_reduction:
+  method: "pca"                # (unused by this script)
+  n_components: 128
+  apply_before_modeling: true
+
+embedding_model:
+  use_pretrained: true
+  model_name_or_path: "seyonec/ChemBERTa-zinc-base-v1"
+  pooling_strategy: "mean"
+  max_length: 128
+
+# This entire section replaces "odor_model" → "model", because the code expects cfg.model.*
+model:
+  backbone: "egnn"                 # or "transformer" (the code branches on this)
+  # used when backbone == "egnn": constructor does EGNN(cfg.model.hidden_dim)
+  hidden_dim: 128
+  # does your code do fingerprint fusion? Yes, `if cfg.model.use_fingerprint: …`
+  use_fingerprint: true
+  # fingerprint dimension (bits in the ECFP you compute)
+  fp_dim: 2048
+  # how wide is the fp MLP? (cfg.model.fp_hidden → one Linear layer)
+  fp_hidden: 256
+  # MLP head sizes after fusion: your code loops over `cfg.model.mlp_hidden`
+  mlp_hidden:
+    - 256
+    - 128
+  # dropout used in both fp_encoder and head
+  dropout: 0.2
+  # If you have a pretrained .pt or .pth state_dict for OdourPredictor
+  # (e.g.: a file you saved previously), specify it here. Otherwise leave ""
+  pretrained_path: ""
+
+train:
+  use_cuda: true                   # code checks torch.cuda.is_available() & cfg.train.use_cuda
+  batch_size: 64
+  lr: 0.001
+  weight_decay: 1e-5
+  epochs: 50
+  log_every: 1                     # print loss every `log_every` epochs
+  checkpoint_path: "models/checkpoint.pt"
+
+evaluation:
+  metrics:
+    - "f1"
+    - "roc_auc"
+    - "average_precision"
+  cross_validation_folds: 5
+  output_confusion_matrix: false
+  per_label_metrics: true
+
+logging:
+  log_to_file: true
+  log_dir: "logs"
+  verbosity: "info"
+
+output:
+  save_model: true
+  model_path: "models/final_model.pkl"
+  save_embeddings: true
+  embeddings_output_path: "output/embeddings.csv"
+  save_reduced_space: true
+  reduced_space_output_path: "output/reduced_coords.csv"
