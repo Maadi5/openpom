@@ -180,6 +180,7 @@ model:
 
   num_nearest_neighbors: 0
   egnn_dropout: 0.0
+  egnn_layers: 3
   norm_feats: false
   norm_coors: false
   valid_radius: 999.0
